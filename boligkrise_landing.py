@@ -212,7 +212,7 @@ def main():
         color: #333;
       }
 
-      /* Citat-boks */
+      /* Citat */
       .blockquote {
         border-left: 4px solid var(--rv-green);
         padding-left: 1rem;
@@ -226,7 +226,7 @@ def main():
         margin-top: 0.5rem;
       }
 
-      /* Statistik-sektion */
+      /* Statistik-kort */
       .crisis-stats {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -242,12 +242,7 @@ def main():
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
       }
 
-      .stat-card h3 {
-        margin: 0.5rem 0;
-        color: var(--rv-green);
-        font-size: 1.1rem;
-      }
-
+      /* Handlingsknapper i overlay */
       .action-buttons {
         display: flex;
         flex-wrap: wrap;
@@ -271,7 +266,6 @@ def main():
         text-decoration: none;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       }
-
       .action-button:hover {
         background: var(--rv-magenta);
         transform: translateY(-2px);
@@ -287,7 +281,7 @@ def main():
         color: var(--rv-white);
       }
 
-      /* Løsningselementer */
+      /* Løsningslisten */
       .solution-item {
         background: #f8f9fa;
         padding: 1rem;
@@ -341,7 +335,7 @@ def main():
         display: block;
       }
 
-      /* Navigationsknapper (Intro / Løsninger) i hjørnet */
+      /* Knapper i nederste hjørne (Intro/Løsninger) */
       .nav-buttons {
         position: absolute;
         bottom: 1rem;
@@ -371,12 +365,13 @@ def main():
         transform: translateY(-2px);
       }
 
-      /* Mobilvenlige justeringer */
+      /* Mobiltilpasninger */
       @media (max-width: 768px) {
         .overlay-box {
+          /* Lad den stadig blive centreret, men du kan også rykke den lidt op,
+             hvis du vil undgå at den 'stikker' ud af skærmen for meget */
           max-height: 80vh;
           width: 90%;
-          padding: 1.5rem;
         }
         .solution-icon {
           font-size: 1.8rem;
@@ -402,10 +397,11 @@ def main():
     <div class="overlay-box" id="welcomeBox">
       <h1><i class="fas fa-home"></i> Boligkrisen rammer unge i hovedstaden</h1>
       <p>
-        Prisstigninger og mangel på studieboliger tvinger et rekordhøjt antal unge til at blive boende
-        hjemme hos mor og far. I 2010 boede mindre end hver fjerde ung fra 20-24 år hos deres forældre.
-        I dag er det over hver tredje. Og hovedstadskommuner som Frederiksberg, København og Glostrup
-        er de absolutte højdespringere.
+        Prisstigninger og mangel på studieboliger tvinger et rekordhøjt antal unge til 
+        at blive boende hjemme hos mor og far. I 2010 boede mindre end hver fjerde 
+        ung fra 20-24 år hos deres forældre. I dag er det over hver tredje. Og 
+        hovedstadskommuner som Frederiksberg, København og Glostrup er de absolutte 
+        højdespringere.
       </p>
       <div class="crisis-stats">
         <div class="stat-card">
@@ -433,10 +429,8 @@ def main():
         <footer>- Ruben Kidde, Formand for Undervisningsudvalget på Frederiksberg</footer>
       </div>
       <p>
-        Da jeg flyttede hjemmefra, kunne jeg betale min studiebolig med halvdelen af min SU. Det er
-        fuldstændig umuligt for de fleste studerende nu. Boligprisudviklingen har skabt en ekstrem
-        skævvridning mellem generationerne, hvor mange i mine forældres generation har tjent større
-        summer på deres bolig, end de nogensinde har kunnet på arbejdsmarkedet.
+        Da jeg flyttede hjemmefra, kunne jeg betale min studiebolig med halvdelen 
+        af min SU. Det er fuldstændig umuligt for de fleste studerende nu ...
       </p>
       <div class="action-buttons">
         <button class="action-button" onclick="hideWelcome()">
@@ -452,71 +446,52 @@ def main():
     <div class="overlay-box hidden" id="solutionsBox">
       <h2><i class="fas fa-lightbulb"></i> Rubens ungeboligpakke</h2>
       <div class="solution-item">
-        <div class="solution-icon">
-          <i class="fas fa-percentage"></i>
-        </div>
+        <div class="solution-icon"><i class="fas fa-percentage"></i></div>
         <div class="solution-content">
           <h3>Øget rentefradrag for førstegangskøbere</h3>
           <p>Gør det billigere for unge at komme ind på boligmarkedet</p>
           <div class="tooltip-content">
-            Dette forslag vil reducere de årlige skattebetalinger for førstegangskøbere, da de vil kunne
-            trække en større del af renteudgifterne fra i skat. Det betyder, at de månedlige udgifter
-            falder, hvilket gør det mere overkommeligt for unge at eje en bolig.
+            Dette forslag vil reducere de årlige skattebetalinger for førstegangskøbere ...
           </div>
         </div>
       </div>
       <div class="solution-item">
-        <div class="solution-icon">
-          <i class="fas fa-file-invoice-dollar"></i>
-        </div>
+        <div class="solution-icon"><i class="fas fa-file-invoice-dollar"></i></div>
         <div class="solution-content">
           <h3>Fjernelse af tinglysningsafgift</h3>
           <p>Reducer startomkostningerne ved boligkøb</p>
           <div class="tooltip-content">
-            Ved at fjerne tinglysningsafgiften vil man reducere de initiale omkostninger ved boligkøb.
-            Det hjælper især førstegangskøbere, som ofte har begrænsede midler til rådighed.
+            Ved at fjerne tinglysningsafgiften vil man reducere de initiale omkostninger ...
           </div>
         </div>
       </div>
       <div class="solution-item">
-        <div class="solution-icon">
-          <i class="fas fa-piggy-bank"></i>
-        </div>
+        <div class="solution-icon"><i class="fas fa-piggy-bank"></i></div>
         <div class="solution-content">
           <h3>Brug pensionsopsparing til boligkøb</h3>
           <p>Gør det muligt at bruge pensionsmidler til udbetalingen</p>
           <div class="tooltip-content">
-            Ved at give unge mulighed for at bruge en del af deres pensionsmidler til
-            udbetalingen på en ejerbolig, kan vi lette vejen ind på boligmarkedet og give
-            flere mulighed for at etablere sig tidligere i livet.
+            Ved at give unge mulighed for at bruge en del af deres pensionsmidler ...
           </div>
         </div>
       </div>
       <div class="solution-item">
-        <div class="solution-icon">
-          <i class="fas fa-building-user"></i>
-        </div>
+        <div class="solution-icon"><i class="fas fa-building-user"></i></div>
         <div class="solution-content">
           <h3>Flere almene ungdomsboliger</h3>
           <p>Kun én ungdomsbolig per tolvte studerende i Kbh. og Frederiksberg</p>
           <div class="tooltip-content">
-            Vi skal oprette en ungdomsboligfond og øremærke midler til kommuner, så der kan
-            opføres billige kollegie- og studieboliger. I dag er der kun én almen
-            ungdomsbolig for hver tolvte studerende i København og Frederiksberg.
+            Vi skal oprette en ungdomsboligfond og øremærke midler til kommuner, ...
           </div>
         </div>
       </div>
       <div class="solution-item">
-        <div class="solution-icon">
-          <i class="fas fa-home"></i>
-        </div>
+        <div class="solution-icon"><i class="fas fa-home"></i></div>
         <div class="solution-content">
           <h3>Lempe krav om store gennemsnitsstørrelser</h3>
           <p>Gør det muligt at bygge flere små, billige boliger</p>
           <div class="tooltip-content">
-            Ved at lempe eller helt fjerne krav om store gennemsnitsstørrelser ved nybyggeri
-            kan vi opføre flere små lejligheder rettet mod unge og studerende, som efterspørger
-            billigere boliger. Dette øger udbuddet af betalelige boliger markant.
+            Ved at lempe eller helt fjerne krav om store gennemsnitsstørrelser ...
           </div>
         </div>
       </div>
@@ -530,7 +505,7 @@ def main():
       </div>
     </div>
 
-    <!-- Navigationsknapper i nederste højre hjørne -->
+    <!-- Knapper i nederste hjørne -->
     <div class="nav-buttons">
       <button class="nav-button" onclick="showWelcome()">
         <i class="fas fa-home"></i> Intro
@@ -541,21 +516,17 @@ def main():
     </div>
 
     <script>
-      /* Finder bokse og gemmer i variabler for nem adgang */
       const welcomeBox = document.getElementById('welcomeBox');
       const solutionsBox = document.getElementById('solutionsBox');
 
       function hideWelcome() {
         welcomeBox.classList.add('hidden');
         solutionsBox.classList.add('hidden');
-        // Hvis du ønsker at centere/zoome kortet kan du evt. tilføje Folium JS her
       }
-
       function showWelcome() {
         welcomeBox.classList.remove('hidden');
         solutionsBox.classList.add('hidden');
       }
-
       function showSolutions() {
         solutionsBox.classList.remove('hidden');
         welcomeBox.classList.add('hidden');
@@ -565,10 +536,10 @@ def main():
     
     m.get_root().html.add_child(folium.Element(html_content))
     
-    # Gem kortet
+    # Gem resultatet
     output_path = "index.html"
     m.save(output_path)
-    print(f"Interaktivt kort med landing page gemt som '{output_path}'")
+    print(f"Interaktivt kort gemt som '{output_path}'")
 
 if __name__ == "__main__":
     main() 
