@@ -135,398 +135,416 @@ def main():
     ).add_to(m)
     
     # Tilføj Font Awesome CSS
-    html_content = f"""
+    html_content = """
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <style>
-        .welcome-box {{
-            max-width: 800px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            border: 2px solid {RV_GREEN};
-        }}
+      /* Her er de farver, du brugte før */
+      :root {
+        --rv-green: #009540;
+        --rv-magenta: #E5007E;
+        --rv-black: #000000;
+        --rv-gray: #F0F0F0;
+        --rv-white: #FFFFFF;
+      }
 
-        .welcome-box h1 {{
-            color: {RV_GREEN};
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 3px solid {RV_GREEN};
-            padding-bottom: 0.5rem;
-        }}
+      body, html {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        height: 100%;
+        overflow: hidden; /* Kortet fylder hele skærmen; overlays scroller */
+      }
 
-        .welcome-box p {{
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-            color: #333;
-        }}
+      #map {
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
 
-        .stat-highlight {{
-            background: {RV_GREEN};
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            display: inline-block;
-            margin: 0.5rem 0;
-            font-weight: bold;
-        }}
+      /* Overordnet boksdesign - mere luft, rundede hjørner, skygge */
+      .overlay-box {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.97);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        border: 2px solid var(--rv-green);
+        max-width: 700px;        /* Lad boksen have en fornuftig maxbredde */
+        width: 90%;              /* Fyld 90% af skærmen på mobil */
+        max-height: 80vh;        /* Undgå at boksen bliver for høj */
+        overflow-y: auto;        /* Gør det muligt at scrolle */
+      }
 
-        .solutions-box {{
-            max-width: 900px;
-            background: rgba(255, 255, 255, 0.97);
-            padding: 2.5rem;
-            border-radius: 15px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-            display: none;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            border: 2px solid {RV_GREEN};
-        }}
+      .overlay-box h1, .overlay-box h2 {
+        color: var(--rv-green);
+        border-bottom: 3px solid var(--rv-green);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+      }
 
-        .solutions-box h2 {{
-            color: {RV_GREEN};
-            font-size: 2.2rem;
-            margin-bottom: 2rem;
-            text-align: center;
-            border-bottom: 3px solid {RV_GREEN};
-            padding-bottom: 0.5rem;
-        }}
+      .overlay-box p {
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        color: #333;
+      }
 
-        .solution-item {{
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 10px;
-            transition: transform 0.2s;
-        }}
+      .overlay-box .blockquote {
+        border-left: 4px solid var(--rv-green);
+        padding-left: 1rem;
+        margin: 1.5rem 0;
+        font-style: italic;
+        color: #555;
+      }
 
-        .solution-item:hover {{
-            transform: translateX(10px);
-            background: #f0f2f5;
-        }}
+      .overlay-box footer {
+        font-size: 0.9rem;
+        color: #555;
+      }
 
-        .solution-icon {{
-            font-size: 2rem;
-            color: {RV_GREEN};
-            margin-right: 1rem;
-            min-width: 50px;
-            text-align: center;
-        }}
+      .crisis-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+      }
 
-        .solution-content {{
-            flex: 1;
-        }}
+      .stat-card {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+        border-left: 4px solid var(--rv-green);
+      }
 
-        .solution-content h3 {{
-            color: {RV_GREEN};
-            margin-bottom: 0.5rem;
-            font-size: 1.3rem;
-        }}
+      .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        justify-content: center;
+      }
 
-        .nav-buttons {{
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 1001;
-            display: flex;
-            gap: 1rem;
-        }}
+      .action-button {
+        background: var(--rv-green);
+        color: white;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s;
+        text-decoration: none;
+      }
 
-        .nav-button {{
-            background: {RV_GREEN};
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }}
+      .action-button:hover {
+        background: var(--rv-magenta);
+        transform: translateY(-2px);
+      }
 
-        .nav-button:hover {{
-            background: {RV_MAGENTA};
-            transform: translateY(-2px);
-        }}
+      .action-button.secondary-button {
+        background: white;
+        color: var(--rv-green);
+        border: 2px solid var(--rv-green);
+      }
 
-        .blockquote {{
-            border-left: 4px solid {RV_GREEN};
-            padding-left: 1rem;
-            margin: 1.5rem 0;
-            font-style: italic;
-            color: #555;
-        }}
+      .action-button.secondary-button:hover {
+        background: var(--rv-green);
+        color: white;
+      }
 
-        .crisis-stats {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }}
+      /* Løsningselementerne */
+      .solution-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        transition: transform 0.2s;
+      }
 
-        .stat-card {{
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 10px;
-            border-left: 4px solid {RV_GREEN};
-        }}
+      .solution-item:hover {
+        transform: translateX(5px);
+        background: #f0f2f5;
+      }
 
-        @media (max-width: 768px) {{
-            .welcome-box, .solutions-box {{
-                width: 90%;
-                margin: 1rem;
-                padding: 1.5rem;
-            }}
+      .solution-icon {
+        font-size: 2rem;
+        color: var(--rv-green);
+        min-width: 40px;
+        text-align: center;
+      }
 
-            .nav-buttons {{
-                bottom: 1rem;
-                right: 1rem;
-            }}
-        }}
+      .solution-content h3 {
+        color: var(--rv-green);
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+      }
 
-        .tooltip-content {{
-            display: none;
-            position: absolute;
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border: 2px solid {RV_GREEN};
-            max-width: 300px;
-            z-index: 1002;
-        }}
+      .solution-content p {
+        margin-bottom: 0.5rem;
+        color: #333;
+      }
 
-        .solution-item:hover .tooltip-content {{
-            display: block;
-            left: 100%;
-            top: 0;
-            margin-left: 1rem;
-        }}
+      .tooltip-content {
+        display: none;
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border: 2px solid var(--rv-green);
+        max-width: 300px;
+        position: absolute;
+        z-index: 1002;
+      }
 
-        .action-buttons {{
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-            justify-content: center;
-        }}
+      .solution-item:hover .tooltip-content {
+        display: block;
+      }
 
-        .action-button {{
-            background: {RV_GREEN};
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s;
-            text-decoration: none;
-        }}
+      /* Knapper til at åbne/lukke overlays */
+      .nav-buttons {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+        z-index: 1001;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
 
-        .action-button:hover {{
-            background: {RV_MAGENTA};
-            transform: translateY(-2px);
-        }}
+      .nav-button {
+        background: var(--rv-green);
+        color: white;
+        border: none;
+        padding: 0.8rem 1.2rem;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
 
-        .secondary-button {{
-            background: white;
-            color: {RV_GREEN};
-            border: 2px solid {RV_GREEN};
-        }}
+      .nav-button:hover {
+        background: var(--rv-magenta);
+        transform: translateY(-2px);
+      }
 
-        .secondary-button:hover {{
-            background: {RV_GREEN};
-            color: white;
-        }}
+      /* RESPONSIVE FORBEDRINGER VIA MEDIA QUERIES */
+      @media (max-width: 768px) {
+        .overlay-box {
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 90%;
+          max-width: 600px;
+          max-height: 80vh;
+        }
+
+        .action-button {
+          width: 100%;
+          justify-content: center;
+        }
+
+        .nav-buttons {
+          flex-direction: column;
+          bottom: 1rem;
+          right: 1rem;
+        }
+
+        .solution-content h3 {
+          font-size: 1.1rem;
+        }
+
+        .solution-icon {
+          font-size: 1.8rem;
+        }
+      }
     </style>
 
-    <div class="welcome-box" id="welcomeBox">
-        <h1><i class="fas fa-home"></i> Boligkrisen rammer unge i hovedstaden</h1>
-        
-        <p>
-            Prisstigninger og mangel på studieboliger tvinger et rekordhøjt antal unge til at blive boende hjemme hos mor
-            og far. I 2010 boede mindre end hver fjerde ung fra 20-24 år hos deres forældre. I dag er det
-            over hver tredje. Og hovedstadskommuner som Frederiksberg, København og Glostrup er de absolutte højdespringere.
-        </p>
-        
-        <div class="crisis-stats">
-            <div class="stat-card">
-                <i class="fas fa-chart-line"></i>
-                <h3>Frederiksberg</h3>
-                <p>+93% (fra 10,3% til 20,0%)</p>
-            </div>
-            <div class="stat-card">
-                <i class="fas fa-city"></i>
-                <h3>København</h3>
-                <p>+88% (fra 8,5% til 16,0%)</p>
-            </div>
-            <div class="stat-card">
-                <i class="fas fa-building"></i>
-                <h3>Glostrup</h3>
-                <p>+88% (fra 22,0% til 41,4%)</p>
-            </div>
-        </div>
+    <!-- HTML: De to bokse, vi viser/skjuler -->
+    <div class="overlay-box" id="welcomeBox">
+      <h1><i class="fas fa-home"></i> Boligkrisen rammer unge i hovedstaden</h1>
+      
+      <p>
+        Prisstigninger og mangel på studieboliger tvinger et rekordhøjt antal unge til at blive boende hjemme
+        hos mor og far. I 2010 boede mindre end hver fjerde ung fra 20-24 år hos deres forældre. I dag er det
+        over hver tredje. Og hovedstadskommuner som Frederiksberg, København og Glostrup er de absolutte
+        højdespringere.
+      </p>
 
-        <div class="blockquote">
-            <i class="fas fa-quote-left"></i>
-            "Vi står i en reel boligkrise for unge i hovedstadsområdet. Det er alvorligt, fordi manglen på studieboliger i
-            sidste ende gør det sværere at gennemføre en uddannelse. Især for studerende, som ikke bliver støttet
-            økonomisk af deres forældre. Boligpriserne er med til at skabe ulighed i uddannelsessystemet, og det er en
-            politisk opgave at rette op på den skævhed."
-            <footer style="margin-top: 0.5rem; font-size: 0.9rem;">
-                - Ruben Kidde, Formand for Undervisningsudvalget på Frederiksberg
-            </footer>
+      <div class="crisis-stats">
+        <div class="stat-card">
+          <i class="fas fa-chart-line"></i>
+          <h3>Frederiksberg</h3>
+          <p>+93% (fra 10,3% til 20,0%)</p>
         </div>
-
-        <p>
-            Da jeg flyttede hjemmefra, kunne jeg betale min studiebolig med halvdelen af min SU. Det er fuldstændig
-            umuligt for de fleste studerende nu. Boligprisudviklingen har skabt en ekstrem skævvridning mellem
-            generationerne, hvor mange i mine forældres generation har tjent større summer på deres bolig, end de
-            nogensinde har kunnet på arbejdsmarkedet.
-        </p>
-
-        <div class="action-buttons">
-            <button class="action-button" onclick="hideWelcome()">
-                <i class="fas fa-map-marked-alt"></i> Udforsk kortet
-            </button>
-            <button class="action-button secondary-button" onclick="showSolutions()">
-                <i class="fas fa-lightbulb"></i> Se løsningerne
-            </button>
+        <div class="stat-card">
+          <i class="fas fa-city"></i>
+          <h3>København</h3>
+          <p>+88% (fra 8,5% til 16,0%)</p>
         </div>
+        <div class="stat-card">
+          <i class="fas fa-building"></i>
+          <h3>Glostrup</h3>
+          <p>+88% (fra 22,0% til 41,4%)</p>
+        </div>
+      </div>
+
+      <div class="blockquote">
+        <i class="fas fa-quote-left"></i>
+        "Vi står i en reel boligkrise for unge i hovedstadsområdet. Det er alvorligt, fordi manglen på
+        studieboliger i sidste ende gør det sværere at gennemføre en uddannelse. Især for studerende, som
+        ikke bliver støttet økonomisk af deres forældre. Boligpriserne er med til at skabe ulighed i
+        uddannelsessystemet, og det er en politisk opgave at rette op på den skævhed."
+        <footer>- Ruben Kidde, Formand for Undervisningsudvalget på Frederiksberg</footer>
+      </div>
+
+      <p>
+        Da jeg flyttede hjemmefra, kunne jeg betale min studiebolig med halvdelen af min SU. Det er
+        fuldstændig umuligt for de fleste studerende nu. Boligprisudviklingen har skabt en ekstrem
+        skævvridning mellem generationerne, hvor mange i mine forældres generation har tjent større
+        summer på deres bolig, end de nogensinde har kunnet på arbejdsmarkedet.
+      </p>
+
+      <div class="action-buttons">
+        <button class="action-button" onclick="hideWelcome()">
+          <i class="fas fa-map-marked-alt"></i> Udforsk kortet
+        </button>
+        <button class="action-button secondary-button" onclick="showSolutions()">
+          <i class="fas fa-lightbulb"></i> Se løsningerne
+        </button>
+      </div>
     </div>
 
-    <div class="solutions-box" id="solutionsBox">
-        <h2><i class="fas fa-lightbulb"></i> Rubens ungeboligpakke</h2>
-        
-        <div class="solution-item">
-            <div class="solution-icon">
-                <i class="fas fa-percentage"></i>
-            </div>
-            <div class="solution-content">
-                <h3>Øget rentefradrag for førstegangskøbere</h3>
-                <p>Gør det billigere for unge at komme ind på boligmarkedet</p>
-                <div class="tooltip-content">
-                    Dette forslag vil reducere de årlige skattebetalinger for førstegangskøbere, da de vil kunne
-                    trække en større del af deres renteudgifter fra i skat. Det betyder, at de månedlige
-                    udgifter til boligen falder, hvilket gør det mere overkommeligt for unge at eje en bolig.
-                </div>
-            </div>
-        </div>
+    <div class="overlay-box" id="solutionsBox" style="display: none;">
+      <h2><i class="fas fa-lightbulb"></i> Rubens ungeboligpakke</h2>
 
-        <div class="solution-item">
-            <div class="solution-icon">
-                <i class="fas fa-file-invoice-dollar"></i>
-            </div>
-            <div class="solution-content">
-                <h3>Fjernelse af tinglysningsafgift</h3>
-                <p>Reducer startomkostningerne ved boligkøb</p>
-                <div class="tooltip-content">
-                    Ved at fjerne tinglysningsafgiften vil man reducere de initiale omkostninger ved boligkøb.
-                    Tinglysningsafgiften er en engangsudgift, der betales ved overdragelse af ejendommen,
-                    og ved at fjerne den vil det især hjælpe førstegangskøbere, som ofte har begrænsede
-                    midler til rådighed.
-                </div>
-            </div>
+      <div class="solution-item">
+        <div class="solution-icon">
+          <i class="fas fa-percentage"></i>
         </div>
+        <div class="solution-content">
+          <h3>Øget rentefradrag for førstegangskøbere</h3>
+          <p>Gør det billigere for unge at komme ind på boligmarkedet</p>
+          <div class="tooltip-content">
+            Dette forslag vil reducere de årlige skattebetalinger for førstegangskøbere, da de vil kunne
+            trække en større del af renteudgifterne fra i skat. Det betyder, at de månedlige udgifter
+            falder, hvilket gør det mere overkommeligt for unge at eje en bolig.
+          </div>
+        </div>
+      </div>
 
-        <div class="solution-item">
-            <div class="solution-icon">
-                <i class="fas fa-piggy-bank"></i>
-            </div>
-            <div class="solution-content">
-                <h3>Brug pensionsopsparing til boligkøb</h3>
-                <p>Gør det muligt at bruge pensionsmidler til udbetalingen</p>
-                <div class="tooltip-content">
-                    Ved at give unge mulighed for at bruge en del af deres pensionsmidler til
-                    udbetalingen på en ejerbolig, kan vi lette vejen ind på boligmarkedet og give
-                    flere mulighed for at etablere sig med egen bolig tidligere i livet.
-                </div>
-            </div>
+      <div class="solution-item">
+        <div class="solution-icon">
+          <i class="fas fa-file-invoice-dollar"></i>
         </div>
+        <div class="solution-content">
+          <h3>Fjernelse af tinglysningsafgift</h3>
+          <p>Reducer startomkostningerne ved boligkøb</p>
+          <div class="tooltip-content">
+            Ved at fjerne tinglysningsafgiften vil man reducere de initiale omkostninger ved boligkøb.
+            Det hjælper især førstegangskøbere, som ofte har begrænsede midler til rådighed.
+          </div>
+        </div>
+      </div>
 
-        <div class="solution-item">
-            <div class="solution-icon">
-                <i class="fas fa-building-user"></i>
-            </div>
-            <div class="solution-content">
-                <h3>Flere almene ungdomsboliger</h3>
-                <p>Kun én ungdomsbolig per tolvte studerende i København og Frederiksberg</p>
-                <div class="tooltip-content">
-                    Vi skal oprette en ungdomsboligfond og øremærke midler til kommuner, så der kan opføres billige
-                    kollegie- og studieboliger uden forsinkende bureaukrati. I dag er der kun én almen ungdomsbolig 
-                    for hver tolvte studerende i København og Frederiksberg - det er helt utilstrækkeligt.
-                </div>
-            </div>
+      <div class="solution-item">
+        <div class="solution-icon">
+          <i class="fas fa-piggy-bank"></i>
         </div>
+        <div class="solution-content">
+          <h3>Brug pensionsopsparing til boligkøb</h3>
+          <p>Gør det muligt at bruge pensionsmidler til udbetalingen</p>
+          <div class="tooltip-content">
+            Ved at give unge mulighed for at bruge en del af deres pensionsmidler til
+            udbetalingen på en ejerbolig, kan vi lette vejen ind på boligmarkedet og give
+            flere mulighed for at etablere sig med egen bolig tidligere i livet.
+          </div>
+        </div>
+      </div>
 
-        <div class="solution-item">
-            <div class="solution-icon">
-                <i class="fas fa-home"></i>
-            </div>
-            <div class="solution-content">
-                <h3>Lempe krav om store gennemsnitsstørrelser</h3>
-                <p>Gør det muligt at bygge flere små, billige boliger</p>
-                <div class="tooltip-content">
-                    Ved at lempe eller helt fjerne krav om store gennemsnitsstørrelser ved nybyggeri i
-                    kommuner kan vi opføre flere små lejligheder, særligt rettet mod unge og studerende,
-                    som efterspørger billigere boliger. Dette vil øge udbuddet af betalelige boliger markant.
-                </div>
-            </div>
+      <div class="solution-item">
+        <div class="solution-icon">
+          <i class="fas fa-building-user"></i>
         </div>
+        <div class="solution-content">
+          <h3>Flere almene ungdomsboliger</h3>
+          <p>Kun én ungdomsbolig per tolvte studerende i Kbh. og Frederiksberg</p>
+          <div class="tooltip-content">
+            Vi skal oprette en ungdomsboligfond og øremærke midler til kommuner, så der kan
+            opføres billige kollegie- og studieboliger. I dag er der kun én almen
+            ungdomsbolig for hver tolvte studerende i København og Frederiksberg.
+          </div>
+        </div>
+      </div>
 
-        <div class="action-buttons">
-            <button class="action-button" onclick="hideWelcome()">
-                <i class="fas fa-map-marked-alt"></i> Udforsk kortet
-            </button>
-            <button class="action-button secondary-button" onclick="showWelcome()">
-                <i class="fas fa-arrow-left"></i> Tilbage til intro
-            </button>
+      <div class="solution-item">
+        <div class="solution-icon">
+          <i class="fas fa-home"></i>
         </div>
+        <div class="solution-content">
+          <h3>Lempe krav om store gennemsnitsstørrelser</h3>
+          <p>Gør det muligt at bygge flere små, billige boliger</p>
+          <div class="tooltip-content">
+            Ved at lempe eller helt fjerne krav om store gennemsnitsstørrelser ved nybyggeri
+            kan vi opføre flere små lejligheder rettet mod unge og studerende, som efterspørger
+            billigere boliger. Dette øger udbuddet af betalelige boliger markant.
+          </div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="action-button" onclick="hideWelcome()">
+          <i class="fas fa-map-marked-alt"></i> Udforsk kortet
+        </button>
+        <button class="action-button secondary-button" onclick="showWelcome()">
+          <i class="fas fa-arrow-left"></i> Tilbage til intro
+        </button>
+      </div>
     </div>
 
+    <!-- Knapper til at springe til intro/løsninger uden at gå ud af kortet -->
     <div class="nav-buttons">
-        <button class="nav-button" onclick="showWelcome()">
-            <i class="fas fa-home"></i> Intro
-        </button>
-        <button class="nav-button" onclick="showSolutions()">
-            <i class="fas fa-lightbulb"></i> Løsninger
-        </button>
+      <button class="nav-button" onclick="showWelcome()">
+        <i class="fas fa-home"></i> Intro
+      </button>
+      <button class="nav-button" onclick="showSolutions()">
+        <i class="fas fa-lightbulb"></i> Løsninger
+      </button>
     </div>
 
     <script>
-        function hideWelcome() {{
-            document.getElementById('welcomeBox').style.display = 'none';
-            document.getElementById('solutionsBox').style.display = 'none';
-            map.setView([55.676098, 12.568337], 11);
-        }}
+      /* Gør folium-map tilgængelig som 'map' i scriptet */
+      let map = document.querySelector('.folium-map');
 
-        function showWelcome() {{
-            document.getElementById('welcomeBox').style.display = 'block';
-            document.getElementById('solutionsBox').style.display = 'none';
-        }}
+      function hideWelcome() {
+        document.getElementById('welcomeBox').style.display = 'none';
+        document.getElementById('solutionsBox').style.display = 'none';
+        // eventuelt sæt zoom/center her om ønsket
+      }
 
-        function showSolutions() {{
-            document.getElementById('solutionsBox').style.display = 'block';
-            document.getElementById('welcomeBox').style.display = 'none';
-        }}
+      function showWelcome() {
+        document.getElementById('welcomeBox').style.display = 'block';
+        document.getElementById('solutionsBox').style.display = 'none';
+      }
+
+      function showSolutions() {
+        document.getElementById('solutionsBox').style.display = 'block';
+        document.getElementById('welcomeBox').style.display = 'none';
+      }
     </script>
     """
     
