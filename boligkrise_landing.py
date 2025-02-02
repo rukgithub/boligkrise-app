@@ -137,33 +137,35 @@ def main():
     # Tilføj Font Awesome CSS
     html_content = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
 
     <style>
-      /* Her er de farver, du brugte før */
+      /* Farver og generelle variabler */
       :root {
         --rv-green: #009540;
         --rv-magenta: #E5007E;
-        --rv-black: #000000;
-        --rv-gray: #F0F0F0;
-        --rv-white: #FFFFFF;
+        --rv-black: #000;
+        --rv-gray: #f0f0f0;
+        --rv-white: #fff;
       }
 
-      body, html {
-        margin: 0;
+      html, body {
+        margin: 0; 
         padding: 0;
         font-family: 'Segoe UI', Arial, sans-serif;
         height: 100%;
-        overflow: hidden; /* Kortet fylder hele skærmen; overlays scroller */
       }
 
-      #map {
+      /* Folium-kortet: fyld hele skærmen */
+      #map, .folium-map {
         width: 100%;
-        height: 100%;
-        position: relative;
+        height: 100vh;
       }
 
-      /* Overordnet boksdesign - mere luft, rundede hjørner, skygge */
+      /* Overlays: Intro og Løsninger */
       .overlay-box {
         position: absolute;
         top: 50%;
@@ -175,17 +177,33 @@ def main():
         box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         z-index: 1000;
         border: 2px solid var(--rv-green);
-        max-width: 700px;        /* Lad boksen have en fornuftig maxbredde */
-        width: 90%;              /* Fyld 90% af skærmen på mobil */
-        max-height: 80vh;        /* Undgå at boksen bliver for høj */
-        overflow-y: auto;        /* Gør det muligt at scrolle */
+        max-width: 700px;     /* Maksimal bredde på større skærme */
+        width: 90%;           /* Fyld 90% på mindre skærme */
+        max-height: 80vh;     /* Undgå at boksen bliver for høj */
+        overflow-y: auto;     /* Scroll, hvis teksten er for lang */
+        opacity: 0;           /* Skjules som udgangspunkt, fadeIn på visning */
+        animation: fadeIn 0.4s ease forwards;
+      }
+
+      /* Fade-in animation */
+      @keyframes fadeIn {
+        to { opacity: 1; }
+      }
+
+      /* Skjul boks (uden fade) via JS ved at sætte display: none */
+      .hidden {
+        display: none !important;
       }
 
       .overlay-box h1, .overlay-box h2 {
         color: var(--rv-green);
         border-bottom: 3px solid var(--rv-green);
-        padding-bottom: 0.5rem;
         margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+      }
+
+      .overlay-box h1 i, .overlay-box h2 i {
+        margin-right: 0.5rem;
       }
 
       .overlay-box p {
@@ -194,24 +212,26 @@ def main():
         color: #333;
       }
 
-      .overlay-box .blockquote {
+      /* Citat-boks */
+      .blockquote {
         border-left: 4px solid var(--rv-green);
         padding-left: 1rem;
         margin: 1.5rem 0;
         font-style: italic;
         color: #555;
       }
-
-      .overlay-box footer {
+      .blockquote footer {
         font-size: 0.9rem;
-        color: #555;
+        color: #777;
+        margin-top: 0.5rem;
       }
 
+      /* Statistik-sektion */
       .crisis-stats {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 1rem;
-        margin: 1rem 0;
+        margin: 1.5rem 0;
       }
 
       .stat-card {
@@ -219,19 +239,26 @@ def main():
         padding: 1rem;
         border-radius: 10px;
         border-left: 4px solid var(--rv-green);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      }
+
+      .stat-card h3 {
+        margin: 0.5rem 0;
+        color: var(--rv-green);
+        font-size: 1.1rem;
       }
 
       .action-buttons {
         display: flex;
         flex-wrap: wrap;
         gap: 1rem;
-        margin-top: 1.5rem;
+        margin-top: 2rem;
         justify-content: center;
       }
 
       .action-button {
         background: var(--rv-green);
-        color: white;
+        color: var(--rv-white);
         border: none;
         padding: 0.8rem 1.5rem;
         border-radius: 25px;
@@ -242,6 +269,7 @@ def main():
         gap: 0.5rem;
         transition: all 0.3s;
         text-decoration: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       }
 
       .action-button:hover {
@@ -249,18 +277,17 @@ def main():
         transform: translateY(-2px);
       }
 
-      .action-button.secondary-button {
-        background: white;
+      .secondary-button {
+        background: var(--rv-white);
         color: var(--rv-green);
         border: 2px solid var(--rv-green);
       }
-
-      .action-button.secondary-button:hover {
+      .secondary-button:hover {
         background: var(--rv-green);
-        color: white;
+        color: var(--rv-white);
       }
 
-      /* Løsningselementerne */
+      /* Løsningselementer */
       .solution-item {
         background: #f8f9fa;
         padding: 1rem;
@@ -270,8 +297,9 @@ def main():
         align-items: flex-start;
         gap: 1rem;
         transition: transform 0.2s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        position: relative;
       }
-
       .solution-item:hover {
         transform: translateX(5px);
         background: #f0f2f5;
@@ -286,45 +314,47 @@ def main():
 
       .solution-content h3 {
         color: var(--rv-green);
-        margin-bottom: 0.5rem;
+        margin: 0 0 0.5rem;
         font-size: 1.2rem;
       }
-
       .solution-content p {
         margin-bottom: 0.5rem;
         color: #333;
       }
 
+      /* Tooltip til ekstra forklaring */
       .tooltip-content {
         display: none;
-        background: white;
+        position: absolute;
+        top: 0;
+        left: 100%;
+        background: var(--rv-white);
         padding: 1rem;
         border-radius: 8px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         border: 2px solid var(--rv-green);
-        max-width: 300px;
-        position: absolute;
+        max-width: 280px;
+        margin-left: 1rem;
         z-index: 1002;
       }
-
       .solution-item:hover .tooltip-content {
         display: block;
       }
 
-      /* Knapper til at åbne/lukke overlays */
+      /* Navigationsknapper (Intro / Løsninger) i hjørnet */
       .nav-buttons {
         position: absolute;
         bottom: 1rem;
         right: 1rem;
-        z-index: 1001;
+        z-index: 1100;
         display: flex;
-        gap: 1rem;
         flex-wrap: wrap;
+        gap: 1rem;
       }
 
       .nav-button {
         background: var(--rv-green);
-        color: white;
+        color: var(--rv-white);
         border: none;
         padding: 0.8rem 1.2rem;
         border-radius: 25px;
@@ -336,55 +366,47 @@ def main():
         transition: all 0.3s;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       }
-
       .nav-button:hover {
         background: var(--rv-magenta);
         transform: translateY(-2px);
       }
 
-      /* RESPONSIVE FORBEDRINGER VIA MEDIA QUERIES */
+      /* Mobilvenlige justeringer */
       @media (max-width: 768px) {
         .overlay-box {
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 90%;
-          max-width: 600px;
           max-height: 80vh;
+          width: 90%;
+          padding: 1.5rem;
         }
-
+        .solution-icon {
+          font-size: 1.8rem;
+        }
+        .solution-content h3 {
+          font-size: 1.1rem;
+        }
+        .action-buttons {
+          flex-direction: column;
+        }
         .action-button {
           width: 100%;
           justify-content: center;
         }
-
-        .nav-buttons {
-          flex-direction: column;
-          bottom: 1rem;
-          right: 1rem;
-        }
-
-        .solution-content h3 {
-          font-size: 1.1rem;
-        }
-
-        .solution-icon {
-          font-size: 1.8rem;
+        .nav-button {
+          font-size: 0.85rem;
+          padding: 0.6rem 1rem;
         }
       }
     </style>
 
-    <!-- HTML: De to bokse, vi viser/skjuler -->
+    <!-- Intro-boks -->
     <div class="overlay-box" id="welcomeBox">
       <h1><i class="fas fa-home"></i> Boligkrisen rammer unge i hovedstaden</h1>
-      
       <p>
-        Prisstigninger og mangel på studieboliger tvinger et rekordhøjt antal unge til at blive boende hjemme
-        hos mor og far. I 2010 boede mindre end hver fjerde ung fra 20-24 år hos deres forældre. I dag er det
-        over hver tredje. Og hovedstadskommuner som Frederiksberg, København og Glostrup er de absolutte
-        højdespringere.
+        Prisstigninger og mangel på studieboliger tvinger et rekordhøjt antal unge til at blive boende
+        hjemme hos mor og far. I 2010 boede mindre end hver fjerde ung fra 20-24 år hos deres forældre.
+        I dag er det over hver tredje. Og hovedstadskommuner som Frederiksberg, København og Glostrup
+        er de absolutte højdespringere.
       </p>
-
       <div class="crisis-stats">
         <div class="stat-card">
           <i class="fas fa-chart-line"></i>
@@ -402,23 +424,20 @@ def main():
           <p>+88% (fra 22,0% til 41,4%)</p>
         </div>
       </div>
-
       <div class="blockquote">
         <i class="fas fa-quote-left"></i>
         "Vi står i en reel boligkrise for unge i hovedstadsområdet. Det er alvorligt, fordi manglen på
-        studieboliger i sidste ende gør det sværere at gennemføre en uddannelse. Især for studerende, som
-        ikke bliver støttet økonomisk af deres forældre. Boligpriserne er med til at skabe ulighed i
-        uddannelsessystemet, og det er en politisk opgave at rette op på den skævhed."
+        studieboliger i sidste ende gør det sværere at gennemføre en uddannelse. Især for studerende,
+        som ikke bliver støttet økonomisk af deres forældre. Boligpriserne er med til at skabe ulighed
+        i uddannelsessystemet, og det er en politisk opgave at rette op på den skævhed."
         <footer>- Ruben Kidde, Formand for Undervisningsudvalget på Frederiksberg</footer>
       </div>
-
       <p>
         Da jeg flyttede hjemmefra, kunne jeg betale min studiebolig med halvdelen af min SU. Det er
         fuldstændig umuligt for de fleste studerende nu. Boligprisudviklingen har skabt en ekstrem
         skævvridning mellem generationerne, hvor mange i mine forældres generation har tjent større
         summer på deres bolig, end de nogensinde har kunnet på arbejdsmarkedet.
       </p>
-
       <div class="action-buttons">
         <button class="action-button" onclick="hideWelcome()">
           <i class="fas fa-map-marked-alt"></i> Udforsk kortet
@@ -429,9 +448,9 @@ def main():
       </div>
     </div>
 
-    <div class="overlay-box" id="solutionsBox" style="display: none;">
+    <!-- Løsnings-boks -->
+    <div class="overlay-box hidden" id="solutionsBox">
       <h2><i class="fas fa-lightbulb"></i> Rubens ungeboligpakke</h2>
-
       <div class="solution-item">
         <div class="solution-icon">
           <i class="fas fa-percentage"></i>
@@ -446,7 +465,6 @@ def main():
           </div>
         </div>
       </div>
-
       <div class="solution-item">
         <div class="solution-icon">
           <i class="fas fa-file-invoice-dollar"></i>
@@ -460,7 +478,6 @@ def main():
           </div>
         </div>
       </div>
-
       <div class="solution-item">
         <div class="solution-icon">
           <i class="fas fa-piggy-bank"></i>
@@ -471,11 +488,10 @@ def main():
           <div class="tooltip-content">
             Ved at give unge mulighed for at bruge en del af deres pensionsmidler til
             udbetalingen på en ejerbolig, kan vi lette vejen ind på boligmarkedet og give
-            flere mulighed for at etablere sig med egen bolig tidligere i livet.
+            flere mulighed for at etablere sig tidligere i livet.
           </div>
         </div>
       </div>
-
       <div class="solution-item">
         <div class="solution-icon">
           <i class="fas fa-building-user"></i>
@@ -490,7 +506,6 @@ def main():
           </div>
         </div>
       </div>
-
       <div class="solution-item">
         <div class="solution-icon">
           <i class="fas fa-home"></i>
@@ -505,7 +520,6 @@ def main():
           </div>
         </div>
       </div>
-
       <div class="action-buttons">
         <button class="action-button" onclick="hideWelcome()">
           <i class="fas fa-map-marked-alt"></i> Udforsk kortet
@@ -516,7 +530,7 @@ def main():
       </div>
     </div>
 
-    <!-- Knapper til at springe til intro/løsninger uden at gå ud af kortet -->
+    <!-- Navigationsknapper i nederste højre hjørne -->
     <div class="nav-buttons">
       <button class="nav-button" onclick="showWelcome()">
         <i class="fas fa-home"></i> Intro
@@ -527,23 +541,24 @@ def main():
     </div>
 
     <script>
-      /* Gør folium-map tilgængelig som 'map' i scriptet */
-      let map = document.querySelector('.folium-map');
+      /* Finder bokse og gemmer i variabler for nem adgang */
+      const welcomeBox = document.getElementById('welcomeBox');
+      const solutionsBox = document.getElementById('solutionsBox');
 
       function hideWelcome() {
-        document.getElementById('welcomeBox').style.display = 'none';
-        document.getElementById('solutionsBox').style.display = 'none';
-        // eventuelt sæt zoom/center her om ønsket
+        welcomeBox.classList.add('hidden');
+        solutionsBox.classList.add('hidden');
+        // Hvis du ønsker at centere/zoome kortet kan du evt. tilføje Folium JS her
       }
 
       function showWelcome() {
-        document.getElementById('welcomeBox').style.display = 'block';
-        document.getElementById('solutionsBox').style.display = 'none';
+        welcomeBox.classList.remove('hidden');
+        solutionsBox.classList.add('hidden');
       }
 
       function showSolutions() {
-        document.getElementById('solutionsBox').style.display = 'block';
-        document.getElementById('welcomeBox').style.display = 'none';
+        solutionsBox.classList.remove('hidden');
+        welcomeBox.classList.add('hidden');
       }
     </script>
     """
