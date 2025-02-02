@@ -1,0 +1,66 @@
+/* Definerer de radikale farver */
+:root {
+  --radikal-gron: #009540;
+  --radikal-magenta: #E5007E;
+}
+
+/* Grundlæggende styling */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  color: #333;
+  padding: 0 1rem;
+}
+
+header {
+  background: var(--radikal-gron);
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+footer {
+  background: var(--radikal-gron);
+  color: white;
+  text-align: center;
+  padding: 1rem;
+}
+
+.card {
+  border: 2px solid var(--radikal-magenta);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+a {
+  color: var(--radikal-magenta);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Responsivitet for mindre skærme */
+@media (max-width: 600px) {
+  header, footer {
+    padding: 0.5rem;
+  }
+  
+  .card {
+    margin: 0.5rem 0;
+    padding: 0.75rem;
+  }
+  
+  h1, h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Yderligere styling for kortsektionen */
+#kort {
+  margin: 1rem 0;
+} 
