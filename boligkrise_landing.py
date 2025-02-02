@@ -3,8 +3,7 @@ import pandas as pd
 import geopandas as gpd
 import folium
 from folium.plugins import Search, Fullscreen
-from branca.element import MacroElement, Template, Figure
-from io import StringIO
+from branca.element import Element
 
 # Opdaterer farver til Radikale Venstres designguide
 RV_GREEN = '#009540'
@@ -21,17 +20,14 @@ def main():
     geojson_url = "https://raw.githubusercontent.com/magnuslarsen/geoJSON-Danish-municipalities/master/municipalities/municipalities.geojson"
     kommuner = gpd.read_file(geojson_url)
     
-    # Indlæs CSV-data med udviklings-tal
+    # Indlæs CSV-data med udviklingstal
     df = pd.read_csv("NY Kopi af DST_Kommune_20_24.csv", 
                      encoding='utf-8', 
                      sep=';',
                      decimal=',')
     
     # Filtrer Bornholm fra og behold kun Region Hovedstaden
-    df_hovedstaden = df[
-        (df['Region'] == 'Region Hovedstaden') & 
-        (df['Kommune'] != 'Bornholm')
-    ].copy()
+    df_hovedstaden = df[(df['Region'] == 'Region Hovedstaden') & (df['Kommune'] != 'Bornholm')].copy()
     
     # Beregn procenttal
     df_hovedstaden["Andel_2010_pct"] = df_hovedstaden["Andel_2010"] * 100
@@ -42,7 +38,7 @@ def main():
     for col in ['Andel_2010_pct', 'Andel_2024_pct', 'pct_change_2010_2024']:
         df_hovedstaden[col] = df_hovedstaden[col].round(1)
     
-    # Forbered GeoJSON data
+    # Merge GeoJSON-data med CSV-data
     merged = kommuner.merge(df_hovedstaden, left_on='label_dk', right_on='Kommune')
     
     # --------------------------------------------
@@ -55,14 +51,12 @@ def main():
         control_scale=True
     )
     
-    # Tilføj fuldskærmsknap
+    # Tilføj fuldskærmsknap og fast zoom til Region Hovedstaden
     Fullscreen().add_to(m)
-    
-    # Fast zoom til Region Hovedstaden (uden Bornholm)
     m.fit_bounds([[55.5, 12.0], [56.0, 12.7]])
     
-    # Opret choropleth lag med RV farver
-    choropleth = folium.Choropleth(
+    # Opret choropleth lag
+    folium.Choropleth(
         geo_data=merged.to_json(),
         name='choropleth',
         data=merged,
@@ -77,38 +71,25 @@ def main():
         highlight=True
     ).add_to(m)
     
-    # Tilføj GeoJSON lag for bedre interaktivitet
+    # Forbedret GeoJSON lag med reduceret "larm"
     geojson_layer = folium.GeoJson(
         merged.to_json(),
         name="Kommuner",
         style_function=lambda x: {
             'fillColor': 'transparent',
             'color': RV_GREEN,
-            'weight': 1,
-            'dashArray': '3'
+            'weight': 0.8,  # Mindre vægt for en finere linje
+            # dashArray fjernet for et rent look
         },
         highlight_function=lambda x: {
             'fillColor': RV_MAGENTA,
             'color': RV_MAGENTA,
-            'weight': 2,
-            'dashArray': '',
-            'fillOpacity': 0.1
+            'weight': 1.5,
+            'fillOpacity': 0.15
         },
         tooltip=folium.GeoJsonTooltip(
-            fields=[
-                'label_dk',
-                'Andel_2010_pct',
-                'Andel_2024_pct',
-                'pct_change_2010_2024',
-                'Hjemmeboende_2024'
-            ],
-            aliases=[
-                'Kommune',
-                'Andel hjemmeboende 2010 (%)',
-                'Andel hjemmeboende 2024 (%)',
-                'Stigning 2010-2024 (%)',
-                'Antal unge (20-24 år) i 2024'
-            ],
+            fields=['label_dk', 'pct_change_2010_2024'],  # Kun to felter for mindre "larm"
+            aliases=['Kommune', 'Stigning 2010-2024 (%)'],
             localize=True,
             sticky=True,
             labels=True,
@@ -119,7 +100,7 @@ def main():
                 box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
                 font-size: 14px;
                 font-family: Arial, sans-serif;
-                padding: 12px;
+                padding: 8px;
             """
         )
     ).add_to(m)
@@ -134,16 +115,15 @@ def main():
         search_zoom=12
     ).add_to(m)
     
-    # Tilføj Font Awesome CSS
+    # --------------------------------------------
+    # 3. Tilføj tilpasset HTML/CSS (inkl. mobile tilpasninger og fed overskrift)
+    # --------------------------------------------
     html_content = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
-
+    <!-- Inkluder Font Awesome og Google Font for en fed overskrift -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
     <style>
-      /* Farver og generelle variabler */
       :root {
         --rv-green: #009540;
         --rv-magenta: #E5007E;
@@ -151,68 +131,59 @@ def main():
         --rv-gray: #f0f0f0;
         --rv-white: #fff;
       }
-
       html, body {
         margin: 0; 
         padding: 0;
-        font-family: 'Segoe UI', Arial, sans-serif;
+        font-family: Arial, sans-serif;
         height: 100%;
       }
-
-      /* Folium-kortet: fyld hele skærmen */
+      /* Kortet skal fylde hele skærmen */
       #map, .folium-map {
         width: 100%;
         height: 100vh;
       }
-
-      /* Overlays: Intro og Løsninger */
+      /* Overlay-bokse */
       .overlay-box {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         background: rgba(255, 255, 255, 0.97);
-        padding: 2rem;
+        padding: 1.5rem;
         border-radius: 15px;
         box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         z-index: 1000;
         border: 2px solid var(--rv-green);
-        max-width: 700px;     /* Maksimal bredde på større skærme */
-        width: 90%;           /* Fyld 90% på mindre skærme */
-        max-height: 80vh;     /* Undgå at boksen bliver for høj */
-        overflow-y: auto;     /* Scroll, hvis teksten er for lang */
-        opacity: 0;           /* Skjules som udgangspunkt, fadeIn på visning */
+        max-width: 700px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        opacity: 0;
         animation: fadeIn 0.4s ease forwards;
       }
-
-      /* Fade-in animation */
       @keyframes fadeIn {
         to { opacity: 1; }
       }
-
-      /* Skjul boks (uden fade) via JS ved at sætte display: none */
       .hidden {
         display: none !important;
       }
-
       .overlay-box h1, .overlay-box h2 {
         color: var(--rv-green);
         border-bottom: 3px solid var(--rv-green);
         margin-bottom: 1rem;
         padding-bottom: 0.5rem;
       }
-
-      .overlay-box h1 i, .overlay-box h2 i {
-        margin-right: 0.5rem;
+      /* Fed overskrift med en fed Google Font og tekst-skygge */
+      .overlay-box h1 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 2.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
       }
-
       .overlay-box p {
         line-height: 1.6;
         margin-bottom: 1rem;
         color: #333;
       }
-
-      /* Citat */
       .blockquote {
         border-left: 4px solid var(--rv-green);
         padding-left: 1rem;
@@ -225,15 +196,12 @@ def main():
         color: #777;
         margin-top: 0.5rem;
       }
-
-      /* Statistik-kort */
       .crisis-stats {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 1rem;
         margin: 1.5rem 0;
       }
-
       .stat-card {
         background: #f8f9fa;
         padding: 1rem;
@@ -241,8 +209,6 @@ def main():
         border-left: 4px solid var(--rv-green);
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
       }
-
-      /* Handlingsknapper i overlay */
       .action-buttons {
         display: flex;
         flex-wrap: wrap;
@@ -250,7 +216,6 @@ def main():
         margin-top: 2rem;
         justify-content: center;
       }
-
       .action-button {
         background: var(--rv-green);
         color: var(--rv-white);
@@ -270,7 +235,6 @@ def main():
         background: var(--rv-magenta);
         transform: translateY(-2px);
       }
-
       .secondary-button {
         background: var(--rv-white);
         color: var(--rv-green);
@@ -280,8 +244,6 @@ def main():
         background: var(--rv-green);
         color: var(--rv-white);
       }
-
-      /* Løsningslisten */
       .solution-item {
         background: #f8f9fa;
         padding: 1rem;
@@ -298,14 +260,12 @@ def main():
         transform: translateX(5px);
         background: #f0f2f5;
       }
-
       .solution-icon {
         font-size: 2rem;
         color: var(--rv-green);
         min-width: 40px;
         text-align: center;
       }
-
       .solution-content h3 {
         color: var(--rv-green);
         margin: 0 0 0.5rem;
@@ -315,8 +275,6 @@ def main():
         margin-bottom: 0.5rem;
         color: #333;
       }
-
-      /* Tooltip til ekstra forklaring */
       .tooltip-content {
         display: none;
         position: absolute;
@@ -334,8 +292,6 @@ def main():
       .solution-item:hover .tooltip-content {
         display: block;
       }
-
-      /* Knapper i nederste hjørne (Intro/Løsninger) */
       .nav-buttons {
         position: absolute;
         bottom: 1rem;
@@ -345,7 +301,6 @@ def main():
         flex-wrap: wrap;
         gap: 1rem;
       }
-
       .nav-button {
         background: var(--rv-green);
         color: var(--rv-white);
@@ -364,14 +319,15 @@ def main():
         background: var(--rv-magenta);
         transform: translateY(-2px);
       }
-
       /* Mobiltilpasninger */
       @media (max-width: 768px) {
         .overlay-box {
-          /* Lad den stadig blive centreret, men du kan også rykke den lidt op,
-             hvis du vil undgå at den 'stikker' ud af skærmen for meget */
           max-height: 80vh;
-          width: 90%;
+          width: 95%;
+          padding: 1rem;
+        }
+        .overlay-box h1 {
+          font-size: 2rem;
         }
         .solution-icon {
           font-size: 1.8rem;
@@ -385,6 +341,7 @@ def main():
         .action-button {
           width: 100%;
           justify-content: center;
+          padding: 0.8rem;
         }
         .nav-button {
           font-size: 0.85rem;
@@ -392,13 +349,12 @@ def main():
         }
       }
     </style>
-
     <!-- Intro-boks -->
     <div class="overlay-box" id="welcomeBox">
       <h1><i class="fas fa-home"></i> Boligkrisen rammer unge i hovedstaden</h1>
       <p>
         Prisstigninger og mangel på studieboliger tvinger et rekordhøjt antal unge til 
-        at blive boende hjemme hos mor og far. I 2010 boede mindre end hver fjerde 
+        at blive boende hjemme hos deres forældre. I 2010 boede mindre end hver fjerde 
         ung fra 20-24 år hos deres forældre. I dag er det over hver tredje. Og 
         hovedstadskommuner som Frederiksberg, København og Glostrup er de absolutte 
         højdespringere.
@@ -441,7 +397,6 @@ def main():
         </button>
       </div>
     </div>
-
     <!-- Løsnings-boks -->
     <div class="overlay-box hidden" id="solutionsBox">
       <h2><i class="fas fa-lightbulb"></i> Rubens ungeboligpakke</h2>
@@ -504,7 +459,6 @@ def main():
         </button>
       </div>
     </div>
-
     <!-- Knapper i nederste hjørne -->
     <div class="nav-buttons">
       <button class="nav-button" onclick="showWelcome()">
@@ -514,11 +468,9 @@ def main():
         <i class="fas fa-lightbulb"></i> Løsninger
       </button>
     </div>
-
     <script>
       const welcomeBox = document.getElementById('welcomeBox');
       const solutionsBox = document.getElementById('solutionsBox');
-
       function hideWelcome() {
         welcomeBox.classList.add('hidden');
         solutionsBox.classList.add('hidden');
@@ -534,7 +486,7 @@ def main():
     </script>
     """
     
-    m.get_root().html.add_child(folium.Element(html_content))
+    m.get_root().html.add_child(Element(html_content))
     
     # Gem resultatet
     output_path = "index.html"
@@ -542,4 +494,4 @@ def main():
     print(f"Interaktivt kort gemt som '{output_path}'")
 
 if __name__ == "__main__":
-    main() 
+    main()
